@@ -1,6 +1,8 @@
-﻿namespace BookShop.Models
+﻿using Microsoft.AspNetCore.Identity;
+
+namespace BookShop.Models
 {
-    public class Person
+    public class Person : IdentityUser
     {
         public int Id { get; set; }
         public string FirstName { get; set; }

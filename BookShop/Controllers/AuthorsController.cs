@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using BookShop.Data;
 using BookShop.Models;
+using System.Text.RegularExpressions;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace BookShop.Controllers
 {
@@ -56,7 +59,9 @@ namespace BookShop.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("AverageScore,Id,FirstName,LastName,Email,Password")] Author author)
         {
-            if (ModelState.IsValid)
+            author.Password = HashPassword.ProceedData(author.Password);
+
+            if (ModelState.IsValid && !CheckEmail(author.Email))
             {
                 _context.Add(author);
                 await _context.SaveChangesAsync();
@@ -65,13 +70,28 @@ namespace BookShop.Controllers
             return View(author);
         }
 
-        private bool CheckEmail(string mail)
+        
+
+        private bool CheckEmail(string email)
         {
             List<Author> Authors = _context.Author.ToListAsync().Result;
 
+            foreach (Author author in Authors)
+            {
+                if (author.Email == email)
+                {
+                    return true;
+                }
+            }
 
-
-            return false;
+            Regex regex = new Regex(@"^([\w\.\-]+)@([\w\-]+)((\.(\w){2,3})+)$");
+            Match match = regex.Match(email);
+            if (match.Success)
+            {
+                return false;
+            }
+            else
+                return true;
         }
 
         // GET: Authors/Edit/5
@@ -158,9 +178,28 @@ namespace BookShop.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        public IActionResult Login()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Login(Author author)
+        {
+            var user = SearchByEmail(author.Email);
+            if (user != null)
+                return View();
+            return RedirectToAction(nameof(Index));
+        }
+
         private bool AuthorExists(int id)
         {
             return _context.Author.Any(e => e.Id == id);
+        }
+        private Author? SearchByEmail(string email)
+        {
+
+            return _context.Author.FirstOrDefault(author => author.Email == email);
         }
     }
 }

@@ -1,9 +1,19 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using BookShop.Data;
+using BookShop.Models;
+using Microsoft.AspNetCore.Identity;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<BookShopContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("BookShopContext") ?? throw new InvalidOperationException("Connection string 'BookShopContext' not found.")));
+
+builder.Services.AddIdentity<User, IdentityRole>().
+    AddEntityFrameworkStores<BookShopContext>().
+    AddDefaultTokenProviders();
+
+builder.Services.AddIdentity<Author, IdentityRole>().
+    AddEntityFrameworkStores<BookShopContext>().
+    AddDefaultTokenProviders();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();

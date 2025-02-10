@@ -67,7 +67,6 @@ namespace BookShop.Controllers
         }
 
         // GET: Books/Edit/5
-        [Authorize]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)

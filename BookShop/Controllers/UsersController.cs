@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using BookShop.Data;
 using BookShop.Models;
+using System.Text.RegularExpressions;
+using System.Text;
+using System.Security.Cryptography;
 
 namespace BookShop.Controllers
 {
@@ -56,13 +59,37 @@ namespace BookShop.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Age,Address,Id,FirstName,LastName,Email,Password")] User user)
         {
-            if (ModelState.IsValid)
+            user.Password = HashPassword.ProceedData(user.Password);
+
+            if (ModelState.IsValid && !CheckEmail(user.Email))
             {
                 _context.Add(user);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
             return View(user);
+        }
+
+        private bool CheckEmail(string email)
+        {
+            List<User> Users = _context.User.ToListAsync().Result;
+
+            foreach (User user in Users)
+            {
+                if (user.Email == email)
+                {
+                    return true;
+                }
+            }
+
+            Regex regex = new Regex(@"^([\w\.\-]+)@([\w\-]+)((\.(\w){2,3})+)$");
+            Match match = regex.Match(email);
+            if (match.Success)
+            {
+                return false;
+            }
+            else
+                return true;
         }
 
         // GET: Users/Edit/5
@@ -149,9 +176,29 @@ namespace BookShop.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        public IActionResult Login()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Login(User User)
+        {
+            var user = SearchByEmail(User.Email);
+            if (user != null)
+                return View();
+            return RedirectToAction(nameof(Index));
+        }
+
         private bool UserExists(int id)
         {
             return _context.User.Any(e => e.Id == id);
+        }
+
+        private User? SearchByEmail(string email)
+        {
+
+            return _context.User.FirstOrDefault(user=>user.Email == email);
         }
     }
 }
