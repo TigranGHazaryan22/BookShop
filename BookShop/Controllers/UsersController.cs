@@ -10,16 +10,21 @@ using BookShop.Models;
 using System.Text.RegularExpressions;
 using System.Text;
 using System.Security.Cryptography;
+using Microsoft.AspNetCore.Identity;
 
 namespace BookShop.Controllers
 {
     public class UsersController : Controller
     {
         private readonly BookShopContext _context;
+        private readonly SignInManager<User> _signInManager;
+        private readonly UserManager<User> _userManager;
 
-        public UsersController(BookShopContext context)
+        public UsersController(BookShopContext context, SignInManager<User> signInManager, UserManager<User> userManager)
         {
             _context = context;
+            _signInManager = signInManager;
+            _userManager = userManager;
         }
 
         // GET: Users
@@ -29,7 +34,7 @@ namespace BookShop.Controllers
         }
 
         // GET: Users/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> Details(string? id)
         {
             if (id == null)
             {
@@ -57,43 +62,48 @@ namespace BookShop.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Age,Address,Id,FirstName,LastName,Email,Password")] User user)
+        public async Task<IActionResult> Create([Bind("Age,Address,Id,FirstName,LastName,Email,Password")] User user, string password)
         {
-            user.Password = HashPassword.ProceedData(user.Password);
+            user.LockoutEnabled = false;
+            user.NormalizedEmail = _userManager.NormalizeEmail(user.Email);
+            user.UserName = user.Email.Remove(user.Email.IndexOf("@"));
+            user.NormalizedUserName = _userManager.NormalizeName(user.UserName);
+            user.PasswordHash = password;
 
-            if (ModelState.IsValid && !CheckEmail(user.Email))
+            if (ModelState.IsValid)
             {
-                _context.Add(user);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                var User = new User
+                {
+                    UserName = user.Email,
+                    Email = user.Email,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    Age = user.Age,
+                    Address = user.Address,
+                    NormalizedEmail = user.NormalizedEmail,
+                    PasswordHash = user.PasswordHash
+                };
+
+                var result = await _userManager.CreateAsync(user, password);
+
+                if (result.Succeeded)
+                {
+                    await _signInManager.SignInAsync(user, isPersistent: false);
+                    return RedirectToAction("Index", "Home");
+                }
+                else
+                {
+                    foreach(var error in result.Errors)
+                    {
+                        ModelState.AddModelError("", error.Description);
+                    }
+                }
             }
             return View(user);
         }
 
-        private bool CheckEmail(string email)
-        {
-            List<User> Users = _context.User.ToListAsync().Result;
-
-            foreach (User user in Users)
-            {
-                if (user.Email == email)
-                {
-                    return true;
-                }
-            }
-
-            Regex regex = new Regex(@"^([\w\.\-]+)@([\w\-]+)((\.(\w){2,3})+)$");
-            Match match = regex.Match(email);
-            if (match.Success)
-            {
-                return false;
-            }
-            else
-                return true;
-        }
-
         // GET: Users/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(string? id)
         {
             if (id == null)
             {
@@ -113,7 +123,7 @@ namespace BookShop.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Age,Address,Id,FirstName,LastName,Email,Password")] User user)
+        public async Task<IActionResult> Edit(string id, [Bind("Age,Address,Id,FirstName,LastName,Email,Password")] User user)
         {
             if (id != user.Id)
             {
@@ -144,7 +154,7 @@ namespace BookShop.Controllers
         }
 
         // GET: Users/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        public async Task<IActionResult> Delete(string? id)
         {
             if (id == null)
             {
@@ -164,7 +174,7 @@ namespace BookShop.Controllers
         // POST: Users/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> DeleteConfirmed(string id)
         {
             var user = await _context.User.FindAsync(id);
             if (user != null)
@@ -182,23 +192,35 @@ namespace BookShop.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Login(User User)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Login(string email, string password)
         {
-            var user = SearchByEmail(User.Email);
-            if (user != null)
-                return View();
-            return RedirectToAction(nameof(Index));
+            var user = await _userManager.FindByEmailAsync(email);
+
+            if(user != null)
+            {
+                var result = await _signInManager.PasswordSignInAsync(user, password, false, false);
+
+                if (result.Succeeded)
+                {
+                    return RedirectToAction("Index", "Home");
+                }
+                else
+                {
+                    ModelState.AddModelError("", "Invalid Email or Password");
+                }
+            }
+            else
+            {
+                ModelState.AddModelError("", "User Not Found.");
+            }
+
+            return View();
         }
 
-        private bool UserExists(int id)
+        private bool UserExists(string id)
         {
-            return _context.User.Any(e => e.Id == id);
-        }
-
-        private User? SearchByEmail(string email)
-        {
-
-            return _context.User.FirstOrDefault(user=>user.Email == email);
+            return _context.User.FirstOrDefaultAsync(e => e.Id == id) != null;
         }
     }
 }

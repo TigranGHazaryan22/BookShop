@@ -1,0 +1,55 @@
+﻿@model IEnumerable<BookShop.Models.Book>
+
+@{
+    ViewData["Title"] = "My Orders";
+}
+
+<h1>My Orders</h1>
+
+<p>
+    <a asp-area="" asp-controller="Books" asp-action="Index">Add a new order</a> |
+    <a asp-action="ClearOrder">Clear</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Title)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Genre)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Price)
+            </th>
+            <th>
+                Count
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Title)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Genre)
+                </td>
+                <td>
+                    @ViewBag.Sum[item.Id]
+                </td>
+                <td>
+                    @ViewBag.Count[item.Id]
+                </td>
+                <td>
+                    <a asp-action="RemoveFromOrder" asp-route-id="@item.Id">Remove</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+<h3>Total Amount to Pay: @ViewBag.Sums</h3>
+<a class="btn btn-primary" asp-controller="Order" asp-action="Index">Buy</a>

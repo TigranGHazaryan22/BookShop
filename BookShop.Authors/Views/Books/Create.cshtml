@@ -1,0 +1,156 @@
+﻿@model BookShop.Models.Book
+
+@{
+	ViewData["Title"] = "Create";
+}
+
+<h1>Create</h1>
+
+<h4>Book</h4>
+<hr />
+<div class="row">
+	<div class="col-md-4">
+		<form asp-action="Create">
+			<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+			<div class="form-group">
+				<label asp-for="Title" class="control-label"></label>
+				<input asp-for="Title" class="form-control" />
+				<span asp-validation-for="Title" class="text-danger"></span>
+			</div>
+			<div class="form-group">
+				<label asp-for="Description" class="control-label"></label>
+				<input asp-for="Description" class="form-control" />
+				<span asp-validation-for="Description" class="text-danger"></span>
+			</div>
+			<div class="form-group">
+				<label asp-for="Genre" class="control-label"></label>
+				<input asp-for="Genre" class="form-control" />
+				<span asp-validation-for="Genre" class="text-danger"></span>
+			</div>
+			<div class="form-group">
+				<label asp-for="Price" class="control-label"></label>
+				<input asp-for="Price" class="form-control" />
+				<span asp-validation-for="Price" class="text-danger"></span>
+			</div>
+			<p>If you can't find your name in the list below, please <a asp-controller="Account" asp-action="Register">register as an author</a></p>
+			<div class="form-group">
+				<label>Selected Authors:</label>
+				<ul id="selectedAuthors" class="list-group"></ul>
+			</div>
+			<div class="form-group position-relative">
+				<label for="authorSearch">Search Author:</label>
+				<input type="text" id="authorSearch" class="form-control" placeholder="Type to search authors...">
+
+				<div id="authorDropdown" class="dropdown-menu w-100" style="display: none; position: absolute; top: 100%; left: 0; z-index: 1000;">
+				</div>
+			</div>
+			<input type="hidden" id="selectedAuthorIds" name="AuthorIds" />
+			<div class="form-group form-check">
+				<label class="form-check-label">
+					<input class="form-check-input" asp-for="IsElectronicAvailable" /> @Html.DisplayNameFor(model => model.IsElectronicAvailable)
+				</label>
+			</div>
+			<div class="form-group form-check">
+				<label class="form-check-label">
+					<input class="form-check-input" asp-for="IsAvailable" /> @Html.DisplayNameFor(model => model.IsAvailable)
+				</label>
+			</div>
+			<div class="form-group">
+				<label asp-for="AgeRestriction" class="control-label"></label>
+				<input asp-for="AgeRestriction" class="form-control" />
+				<span asp-validation-for="AgeRestriction" class="text-danger"></span>
+			</div>
+			<div class="form-group">
+				<input type="submit" value="Create" class="btn btn-primary" />
+			</div>
+		</form>
+	</div>
+</div>
+
+<div>
+	<a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+	@{
+		await Html.RenderPartialAsync("_ValidationScriptsPartial");
+	}
+
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<script>
+				$(document).ready(function () {
+			var authors = @Html.Raw(Json.Serialize(ViewData["Authors"])); // Get authors from ViewData
+			var selectedAuthors = [];
+
+			$("#authorSearch").on("input", function () {
+				var searchText = $(this).val().toLowerCase();
+				var dropdown = $("#authorDropdown");
+
+				dropdown.empty().hide(); // Clear dropdown and hide
+
+				if (searchText.length === 0) return;
+
+				var filteredAuthors = authors.filter(a =>
+					a.firstname.toLowerCase().includes(searchText)
+					a.lastname.toLowerCase().includes(searchText)
+				);
+
+				if (filteredAuthors.length === 0) {
+					dropdown.append($("<div class='dropdown-item text-muted'>No authors found</div>")).show();
+					return;
+				}
+
+				filteredAuthors.forEach(author => {
+					var item = $("<div class='dropdown-item'></div>")
+						.text(author.firstname + " " + author.lastname + " (" + author.email + ")") // Correct property names
+						.data("author", author)
+						.on("click", function () {
+							addAuthor($(this).data("author"));
+						});
+
+					dropdown.append(item);
+				});
+
+				dropdown.show();
+			});
+
+			function addAuthor(author) {
+				if (!author  selectedAuthors.find(a => a.id === author.id)) return;
+
+				selectedAuthors.push(author);
+				updateSelectedAuthors();
+
+				$("#authorSearch").val("");
+				$("#authorDropdown").empty().hide();
+			}
+
+			function removeAuthor(authorId) {
+				selectedAuthors = selectedAuthors.filter(a => a.id !== authorId);
+				updateSelectedAuthors();
+			}
+
+			function updateSelectedAuthors() {
+				var list = $("#selectedAuthors");
+				list.empty();
+
+				selectedAuthors.forEach(author => {
+					var listItem = $("<li class='list-group-item d-flex justify-content-between'></li>")
+						.text(author.firstname + " " + author.lastname + " (" + author.email + ")")
+						.append($("<button class='btn btn-danger btn-sm'>Remove</button>")
+							.on("click", function () {
+								removeAuthor(author.id);
+							}));
+
+					list.append(listItem);
+				});
+
+				$("#selectedAuthorIds").val(selectedAuthors.map(a => a.id).join(","));
+			}
+		});
+			document.getElementById("AgeRestriction").addEventListener("input", function() {
+				if (this.value < 0) {
+					this.value = 0;
+				}
+			});
+	</script>
+}

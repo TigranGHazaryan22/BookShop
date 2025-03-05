@@ -1,0 +1,25 @@
+﻿@using BookShop;
+@using Microsoft.AspNetCore.Identity;
+
+@inject SignInManager<Author> signInManager;
+
+<ul class="navbar-nav ms-auto">
+	@if(signInManager.IsSignedIn(User))
+	{
+		<li>
+			<a class="nav-link text-dark" asp-controller="Account" asp-action="Logout">Logout</a>
+		</li>
+		<li>
+			<a class="nav-link" style="color:red" asp-controller="Account" asp-action="Remove">Remove</a>
+		</li>
+	}
+	else{
+
+		<li>
+			<a class="nav-link text-dark" asp-controller="Authors"  asp-action="Login">Login</a>
+		</li>
+		<li>
+			<a class="nav-link text-dark" asp-controller="Authors"  asp-action="Create">Register</a>
+		</li>
+	}
+</ul>
