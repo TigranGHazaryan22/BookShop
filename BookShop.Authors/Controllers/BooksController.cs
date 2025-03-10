@@ -49,7 +49,6 @@ namespace BookShop.Controllers
         public async Task<IActionResult> Create()
         {
             List<Author> authors = await _context.Author.ToListAsync();
-
             ViewData["Authors"] = authors;
             return View();
         }
@@ -132,7 +131,6 @@ namespace BookShop.Controllers
             {
                 return NotFound();
             }
-
             var book = await _context.Book
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (book == null)
