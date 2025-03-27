@@ -41,6 +41,12 @@ namespace BookShop.Controllers
                 return NotFound();
             }
 
+            List<Review> reviews = await _context.Review
+                .Where(r => r.Book.Id == id)
+                .Include(r => r.User)
+                .ToListAsync();
+
+            ViewData["Reviews"] = reviews;
             return View(book);
         }
     }

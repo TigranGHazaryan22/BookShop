@@ -1,0 +1,96 @@
+﻿@model BookShop.Models.VoteAward
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h1>Be free to vote</h1>
+
+<div>
+    <h4>Voting</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Title)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Title)
+        </dd>
+
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Creator)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Creator.Email)
+        </dd>
+
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Funders)
+        </dt>
+        <dd class="col-sm-10">
+            @if (Model.Funders != null && Model.Funders.Any())
+            {
+                foreach (User funder in Model.Funders)
+                {
+                    <div>@funder.Email</div>
+                }
+            }
+            else
+            {
+                <div>No funders available.</div>
+            }
+        </dd>
+
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Description)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Description)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Date)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Date)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.End)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.End)
+        </dd>
+
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Votes)
+        </dt>
+    </dl>
+</div>
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-info">
+        @TempData["Message"]
+    </div>
+}
+<form asp-action="AddVote" method="post">
+    @Html.Hidden("pollId", Model.Id)
+
+    <div>
+        @foreach (var option in Model.Votes)
+        {
+            <div>
+                <input type="radio" name="selectedAuthor" id="author_@option.Author.Id" value="@option.Author.Id" />
+                <label for="author_@option.Author.Id">
+                    @option.Author.FirstName @option.Author.LastName (@option.Author.Email)
+                </label>
+            </div>
+        }
+    </div>
+
+    <input type="submit" value="Submit Vote" class="btn btn-primary" />
+</form>
+
+<div>
+    <a asp-action="Index">Back to List</a> |
+    <a asp-action="BecomeFunder">Become a funder</a>
+</div>
+

@@ -9,16 +9,19 @@ using BookShop.Data;
 using BookShop.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.AspNetCore.Identity;
 
 namespace BookShop.Controllers
 {
     public class BooksController : Controller
     {
         private readonly BookShopContext _context;
+        private readonly UserManager<Author> _userManager;
 
-        public BooksController(BookShopContext context)
+        public BooksController(BookShopContext context, UserManager<Author> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: Books
@@ -42,6 +45,12 @@ namespace BookShop.Controllers
                 return NotFound();
             }
 
+            List<Review> reviews = await _context.Review
+                .Where(r => r.Book.Id == id)
+                .Include(r => r.User)
+                .ToListAsync();
+
+            ViewData["Reviews"] = reviews;
             return View(book);
         }
 
@@ -68,6 +77,7 @@ namespace BookShop.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
+            ViewData["Authors"] = await _context.Author.ToListAsync();
             return View(book);
         }
 
@@ -100,24 +110,30 @@ namespace BookShop.Controllers
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
+            var user = await _userManager.GetUserAsync(User);
+
+            foreach (var o in book.Authors)
             {
-                try
+                if (ModelState.IsValid && user.Id == o.Id)
                 {
-                    _context.Update(book);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!BookExists(book.Id))
+                    try
                     {
-                        return NotFound();
+                        _context.Update(book);
+                        await _context.SaveChangesAsync();
                     }
-                    else
+                    catch (DbUpdateConcurrencyException)
                     {
-                        throw;
+                        if (!BookExists(book.Id))
+                        {
+                            return NotFound();
+                        }
+                        else
+                        {
+                            throw;
+                        }
                     }
                 }
+
                 return RedirectToAction(nameof(Index));
             }
             return View(book);

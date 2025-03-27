@@ -8,5 +8,6 @@
         public List<User> Funders {  get; set; } = new List<User>();
         public Author Author { get; set; } = new Author();
         public DateTime Date { get; set; }
+        public User Creator { get; set; } = new User();
     }
 }

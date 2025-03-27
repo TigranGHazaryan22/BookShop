@@ -4,6 +4,7 @@ using BookShop.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BookShop.Migrations
 {
     [DbContext(typeof(BookShopContext))]
-    partial class BookShopContextModelSnapshot : ModelSnapshot
+    [Migration("20250314152656_VoteOption")]
+    partial class VoteOption
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -127,10 +130,6 @@ namespace BookShop.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("CreatorId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
 
@@ -145,8 +144,6 @@ namespace BookShop.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AuthorId");
-
-                    b.HasIndex("CreatorId");
 
                     b.ToTable("Award");
                 });
@@ -258,6 +255,9 @@ namespace BookShop.Migrations
                     b.Property<int>("Age")
                         .HasColumnType("int");
 
+                    b.Property<int?>("AwardId")
+                        .HasColumnType("int");
+
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
@@ -310,7 +310,12 @@ namespace BookShop.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
+                    b.Property<int?>("VoteAwardId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("AwardId");
 
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
@@ -319,6 +324,8 @@ namespace BookShop.Migrations
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex")
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
+
+                    b.HasIndex("VoteAwardId");
 
                     b.ToTable("AspNetUsers", (string)null);
                 });
@@ -353,7 +360,7 @@ namespace BookShop.Migrations
 
                     b.HasIndex("CreatorId");
 
-                    b.ToTable("VoteAwards");
+                    b.ToTable("VoteAwards", (string)null);
                 });
 
             modelBuilder.Entity("BookShop.Models.VoteOption", b =>
@@ -368,7 +375,7 @@ namespace BookShop.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<int>("Counts")
+                    b.Property<int>("Count")
                         .HasColumnType("int");
 
                     b.Property<int?>("VoteAwardId")
@@ -380,7 +387,7 @@ namespace BookShop.Migrations
 
                     b.HasIndex("VoteAwardId");
 
-                    b.ToTable("Options");
+                    b.ToTable("VoteOption");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -516,51 +523,6 @@ namespace BookShop.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("UserFundedAwards", b =>
-                {
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("AwardId")
-                        .HasColumnType("int");
-
-                    b.HasKey("UserId", "AwardId");
-
-                    b.HasIndex("AwardId");
-
-                    b.ToTable("UserFundedAwards");
-                });
-
-            modelBuilder.Entity("UserFundedVoteAwards", b =>
-                {
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("VoteAwardId")
-                        .HasColumnType("int");
-
-                    b.HasKey("UserId", "VoteAwardId");
-
-                    b.HasIndex("VoteAwardId");
-
-                    b.ToTable("UserFundedVoteAwards");
-                });
-
-            modelBuilder.Entity("UserVoteAwards", b =>
-                {
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("VoteAwardId")
-                        .HasColumnType("int");
-
-                    b.HasKey("UserId", "VoteAwardId");
-
-                    b.HasIndex("VoteAwardId");
-
-                    b.ToTable("UserVoteAwards");
-                });
-
             modelBuilder.Entity("AuthorBook", b =>
                 {
                     b.HasOne("BookShop.Models.Author", null)
@@ -599,15 +561,7 @@ namespace BookShop.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("BookShop.Models.User", "Creator")
-                        .WithMany("CreatedAwards")
-                        .HasForeignKey("CreatorId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.Navigation("Author");
-
-                    b.Navigation("Creator");
                 });
 
             modelBuilder.Entity("BookShop.Models.Order", b =>
@@ -636,12 +590,23 @@ namespace BookShop.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("BookShop.Models.User", b =>
+                {
+                    b.HasOne("BookShop.Models.Award", null)
+                        .WithMany("Funders")
+                        .HasForeignKey("AwardId");
+
+                    b.HasOne("BookShop.Models.VoteAward", null)
+                        .WithMany("Funders")
+                        .HasForeignKey("VoteAwardId");
+                });
+
             modelBuilder.Entity("BookShop.Models.VoteAward", b =>
                 {
                     b.HasOne("BookShop.Models.User", "Creator")
-                        .WithMany("CreatedPolls")
+                        .WithMany()
                         .HasForeignKey("CreatorId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Creator");
@@ -713,54 +678,14 @@ namespace BookShop.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("UserFundedAwards", b =>
-                {
-                    b.HasOne("BookShop.Models.Award", null)
-                        .WithMany()
-                        .HasForeignKey("AwardId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("BookShop.Models.User", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("UserFundedVoteAwards", b =>
-                {
-                    b.HasOne("BookShop.Models.User", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("BookShop.Models.VoteAward", null)
-                        .WithMany()
-                        .HasForeignKey("VoteAwardId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("UserVoteAwards", b =>
-                {
-                    b.HasOne("BookShop.Models.User", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("BookShop.Models.VoteAward", null)
-                        .WithMany()
-                        .HasForeignKey("VoteAwardId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("BookShop.Models.Author", b =>
                 {
                     b.Navigation("Awards");
+                });
+
+            modelBuilder.Entity("BookShop.Models.Award", b =>
+                {
+                    b.Navigation("Funders");
                 });
 
             modelBuilder.Entity("BookShop.Models.Book", b =>
@@ -770,10 +695,6 @@ namespace BookShop.Migrations
 
             modelBuilder.Entity("BookShop.Models.User", b =>
                 {
-                    b.Navigation("CreatedAwards");
-
-                    b.Navigation("CreatedPolls");
-
                     b.Navigation("Orders");
 
                     b.Navigation("Reviews");
@@ -781,6 +702,8 @@ namespace BookShop.Migrations
 
             modelBuilder.Entity("BookShop.Models.VoteAward", b =>
                 {
+                    b.Navigation("Funders");
+
                     b.Navigation("Votes");
                 });
 #pragma warning restore 612, 618

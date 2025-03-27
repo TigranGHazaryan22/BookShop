@@ -6,11 +6,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using BookShop.Data;
-using BookShop.Models;
 using System.Text.RegularExpressions;
 using System.Text;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Identity;
+using BookShop.Models;
 
 namespace BookShop.Controllers
 {
