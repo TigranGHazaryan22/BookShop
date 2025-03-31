@@ -141,32 +141,36 @@ namespace BookShop.Controllers
             return RedirectToAction("Index");
         }
 
-        public async Task<IActionResult> BecomeFunder(int pollId)
+        public async Task<IActionResult> BecomeFunder(int? id)
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Unauthorized();
 
             var funders = await _context.VoteAwards
                 .Include(a => a.Funders)
-                .FirstOrDefaultAsync(a => a.Id == pollId);
+                .FirstOrDefaultAsync(a => a.Id == id);
+
+            if (funders.Funders == null)
+            {
+                funders.Funders = new List<User>();
+            }
 
             if (!funders.Funders.Contains(user))
             {
                 funders.Funders.Add(user);
-            }
-            else
-            {
-                ModelState.AddModelError("", "You are already a funder for this poll");
-            }
 
-            await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
 
-            var thePoll = await _context.VoteAwards
-                .Include(a => a.Votes).ThenInclude(o => o.Author)
-                .Include(u => u.VotedUsers)
-                .Include(u => u.Funders)
-                .FirstOrDefaultAsync(a => pollId == a.Id);
-            return View(thePoll);
+                var thePoll = await _context.VoteAwards
+                    .Include(a => a.Votes).ThenInclude(o => o.Author)
+                    .Include(u => u.VotedUsers)
+                    .Include(u => u.Funders)
+                    .FirstOrDefaultAsync(a => id == a.Id);
+                return View(thePoll);
+            }
+            TempData["Message"] = "You are already a funder of this vote.";
+            return RedirectToAction("VoteView", new { id = id });
+
         }
 
         [HttpGet]

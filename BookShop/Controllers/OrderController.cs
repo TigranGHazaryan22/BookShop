@@ -1,8 +1,10 @@
 ﻿using BookShop.Data;
 using BookShop.Helpers;
+using BookShop.Migrations;
 using BookShop.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace BookShop.Controllers
 {
@@ -23,24 +25,49 @@ namespace BookShop.Controllers
             return View();
         }
 
-        public async Task<IActionResult> PlaceOrder()
+        public async Task<IActionResult> PlaceOrder([FromBody] Dictionary<int, int> counts)
         {
-            var user = _userManager.GetUserAsync(User);
+            var user = await _userManager.GetUserAsync(User);
             if (user == null) return Unauthorized();
 
-            var orderBooks = HttpContext.Session.GetObject<List<Book>>(SessionKey);
-            if (orderBooks.Any()) return BadRequest("Your order is empty");
+            List<OrderBooks> orderBooks = new List<OrderBooks>();
 
             Order newOrder = new Order
             {
-                User = (User)await user,
-                Books = orderBooks,
+                User = user,
                 Date = DateTime.Now
             };
 
-            _context.Orders.Add(newOrder);
+            foreach (var book in counts.Keys)
+            {
+                orderBooks.Add(new OrderBooks
+                {
+                    Order = newOrder,
+                    Book = await _context.Book.FirstOrDefaultAsync(a => a.Id == book),
+                    Count = counts[book]
+                });
+            }
+
+            newOrder.Counts = orderBooks;
+
+            _context.Add(newOrder);
+            _context.OrderBook.AddRange(orderBooks);
+
             await _context.SaveChangesAsync();
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction("Index");
+        }
+
+        public async Task<IActionResult> MyOrders()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+
+            var orders = await _context.Orders
+                .Where(a => a.User.Id == user.Id)
+                .Include(o => o.Counts).ThenInclude(o => o.Book)
+                .ToListAsync();
+
+            return View(orders);
         }
     }
 }

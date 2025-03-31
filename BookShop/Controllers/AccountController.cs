@@ -41,15 +41,12 @@ namespace BookShop.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            if(user != null)
+            if (user != null)
             {
                 var orders = await _context.Orders.ToListAsync();
-
-                foreach(var o in orders)
-                {
-                    if (o.User.Id == user.Id)
-                        orders.Remove(o);
-                }
+                var reviews = await _context.Review.ToListAsync();
+                reviews.RemoveAll(r => r.User.Id == user.Id);
+                orders.RemoveAll(r => r.User.Id == user.Id);
 
                 await _signInManager.SignOutAsync();
                 _context.User.Remove(user);

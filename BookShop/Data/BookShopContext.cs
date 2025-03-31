@@ -73,6 +73,8 @@ namespace BookShop.Data
         public DbSet<BookShop.Models.Review> Review { get; set; } = default!;
         public DbSet<VoteAward> VoteAwards { get; set; }
         public DbSet<VoteOption> Options { get; set; }
+        public DbSet<OrderBooks> OrderBook { get; set; }
+
 
     }
 }

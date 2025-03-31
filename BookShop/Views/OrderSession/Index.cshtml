@@ -52,4 +52,8 @@
     </tbody>
 </table>
 <h3>Total Amount to Pay: @ViewBag.Sums</h3>
-<a class="btn btn-primary" asp-controller="Order" asp-action="Index">Buy</a>
+<form method="post" asp-controller="Order" asp-action="PlaceOrder">
+    <input type="hidden" name="counts" value='@Html.Raw(Json.Serialize(ViewBag.Count))' />
+    <button type="submit" class="btn btn-primary">Buy</button>
+</form>
+

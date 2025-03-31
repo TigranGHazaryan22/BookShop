@@ -13,5 +13,7 @@
         public bool IsAvailable { get; set; }
         public int? AgeRestriction { get; set; }
         public List<Order> Orders { get; set; } = new List<Order>();
+        public List<OrderBooks> Books { get; set; } = new List<OrderBooks>();
+        // public File file { get; set; }
     }
 }

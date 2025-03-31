@@ -1,0 +1,38 @@
+﻿@model IEnumerable<BookShop.Models.Order>
+
+@{
+	ViewData["Title"] = "My Orders";
+}
+
+<h1>My Orders</h1>
+
+@foreach (var order in Model)
+{
+	<table class="table">
+		<thead>
+			<tr>
+				<th>
+					Title
+				</th>
+				<th>
+					Price
+				</th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var book in order.Counts)
+			{
+				<tr>
+					<td>
+						@Html.DisplayFor(modelItem => book.Book.Title)
+					</td>
+					<td>
+						@Html.DisplayFor(modelItem => book.Book.Price)
+					</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+}
+<br />
+
