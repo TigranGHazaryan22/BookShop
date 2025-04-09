@@ -34,15 +34,26 @@ namespace BookShop.Controllers
         }
 
         // GET: Users/Details/5
-        public async Task<IActionResult> Details(string? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
+        //public async Task<IActionResult> Details(string? id)
+        //{
+        //    if (id == null)
+        //    {
+        //        return NotFound();
+        //    }
 
-            var user = await _context.User
-                .FirstOrDefaultAsync(m => m.Id == id);
+        //    var user = await _context.User
+        //        .FirstOrDefaultAsync(m => m.Id == id);
+        //    if (user == null)
+        //    {
+        //        return NotFound();
+        //    }
+
+        //    return View(user);
+        //}
+        public async Task<IActionResult> Details()
+        {
+            var user = await _userManager.GetUserAsync(User);
+
             if (user == null)
             {
                 return NotFound();

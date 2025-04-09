@@ -43,13 +43,35 @@ namespace BookShop.Controllers
 
             if (user != null)
             {
-                var orders = await _context.Orders.ToListAsync();
-                var reviews = await _context.Review.ToListAsync();
-                reviews.RemoveAll(r => r.User.Id == user.Id);
-                orders.RemoveAll(r => r.User.Id == user.Id);
+                var orders = await _context.Orders
+                    .Include(u => u.User)
+                    .Where(o => o.User.Id == user.Id)
+                    .ToListAsync();
+                var reviews = await _context.Review
+                    .Include(u => u.User)
+                    .Where(r => r.User.Id == user.Id)
+                    .ToListAsync();
+                var polls = await _context.VoteAwards
+                    .Include(u => u.Creator)
+                    .Include(o => o.Votes)
+                    .Where(r => r.Creator.Id == user.Id)
+                    .ToListAsync();
+
+                List<VoteOption> options = new List<VoteOption>();
+
+                foreach(var o in polls)
+                {
+                    options.AddRange(o.Votes);
+                }
+
+                _context.Review.RemoveRange(reviews);
+                _context.Orders.RemoveRange(orders);
+                _context.VoteAwards.RemoveRange(polls);
+                _context.Options.RemoveRange(options);
 
                 await _signInManager.SignOutAsync();
                 _context.User.Remove(user);
+
                 await _context.SaveChangesAsync();
             }
             else
@@ -57,6 +79,12 @@ namespace BookShop.Controllers
                 ModelState.AddModelError("", "Your account was not removed");
             }
 
+            return RedirectToAction("Index", "Home");
+        }
+
+        public async Task<IActionResult> RemoveConfirmed()
+        {
+            await _signInManager.SignOutAsync();
             return RedirectToAction("Index", "Home");
         }
 

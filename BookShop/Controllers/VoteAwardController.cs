@@ -60,6 +60,11 @@ namespace BookShop.Controllers
             var authors = await _context.Author
                 .Where(a => authorIds.Contains(a.Id))
                 .ToListAsync();
+
+            ModelState.Remove("Creator.Address");
+            ModelState.Remove("Creator.LastName");
+            ModelState.Remove("Creator.FirstName");
+
             if (ModelState.IsValid)
             {
                 var _award = new VoteAward
@@ -95,6 +100,8 @@ namespace BookShop.Controllers
 
                 if (b)
                 {
+                    List<Author> author= await _context.Author.ToListAsync();
+                    ViewData["Authors"] = author;
                     return View();
                 }
                 _context.VoteAwards.Add(_award);
