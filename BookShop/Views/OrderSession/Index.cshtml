@@ -45,15 +45,14 @@
                     @ViewBag.Count[item.Id]
                 </td>
                 <td>
-                    <a asp-action="RemoveFromOrder" asp-route-id="@item.Id">Remove</a>
+                    <a asp-action="RemoveFromOrder" asp-route-id="@item.Id">Remove</a> /
+                    <a asp-action="AddBook" asp-route-id="@item.Id">+</a> /
+                    <a asp-action="RemoveBook" asp-route-id="@item.Id">-</a>
                 </td>
             </tr>
         }
     </tbody>
 </table>
 <h3>Total Amount to Pay: @ViewBag.Sums</h3>
-<form method="post" asp-controller="Order" asp-action="PlaceOrder">
-    <input type="hidden" name="counts" value='@Html.Raw(Json.Serialize(ViewBag.Count))' />
-    <button type="submit" class="btn btn-primary">Buy</button>
-</form>
+<a asp-controller="Order" asp-action="PlaceOrder">Buy</a>
 

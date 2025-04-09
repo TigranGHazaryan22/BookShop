@@ -66,6 +66,36 @@ namespace BookShop.Controllers
 
             if (bookToRemove != null)
             {
+                order.RemoveAll(b => b.Id == bookToRemove.Id);
+                HttpContext.Session.SetObject(SessionKey, order);
+            }
+
+            return RedirectToAction("Index");
+        }
+
+        [Authorize]
+        public IActionResult AddBook(int id)
+        {
+            var order = HttpContext.Session.GetObject<List<Book>>(SessionKey) ?? new List<Book>();
+            var bookToAdd = order.FirstOrDefault(b => b.Id == id);
+
+            if (bookToAdd != null)
+            {
+                order.Add(bookToAdd);
+                HttpContext.Session.SetObject(SessionKey, order);
+            }
+
+            return RedirectToAction("Index");
+        }
+
+        [Authorize]
+        public IActionResult RemoveBook(int id)
+        {
+            var order = HttpContext.Session.GetObject<List<Book>>(SessionKey) ?? new List<Book>();
+            var bookToRemove = order.FirstOrDefault(b => b.Id == id);
+
+            if (bookToRemove != null)
+            {
                 order.Remove(bookToRemove);
                 HttpContext.Session.SetObject(SessionKey, order);
             }

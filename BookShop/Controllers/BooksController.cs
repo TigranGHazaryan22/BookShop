@@ -35,6 +35,7 @@ namespace BookShop.Controllers
             }
 
             var book = await _context.Book
+                .Include(b => b.file)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (book == null)
             {

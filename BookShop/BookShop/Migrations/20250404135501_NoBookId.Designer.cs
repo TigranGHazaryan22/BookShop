@@ -4,6 +4,7 @@ using BookShop.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BookShop.Migrations
 {
     [DbContext(typeof(BookShopContext))]
-    partial class BookShopContextModelSnapshot : ModelSnapshot
+    [Migration("20250404135501_NoBookId")]
+    partial class NoBookId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -168,42 +171,9 @@ namespace BookShop.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("fileId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("fileId");
 
                     b.ToTable("Book");
-                });
-
-            modelBuilder.Entity("BookShop.Models.File", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("datetime2");
-
-                    b.Property<byte[]>("filling")
-                        .IsRequired()
-                        .HasColumnType("varbinary(max)");
-
-                    b.Property<string>("name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("type")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("File");
                 });
 
             modelBuilder.Entity("BookShop.Models.Order", b =>
@@ -642,15 +612,6 @@ namespace BookShop.Migrations
                     b.Navigation("Author");
 
                     b.Navigation("Creator");
-                });
-
-            modelBuilder.Entity("BookShop.Models.Book", b =>
-                {
-                    b.HasOne("BookShop.Models.File", "file")
-                        .WithMany()
-                        .HasForeignKey("fileId");
-
-                    b.Navigation("file");
                 });
 
             modelBuilder.Entity("BookShop.Models.Order", b =>

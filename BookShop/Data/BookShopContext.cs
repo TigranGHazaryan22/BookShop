@@ -74,7 +74,7 @@ namespace BookShop.Data
         public DbSet<VoteAward> VoteAwards { get; set; }
         public DbSet<VoteOption> Options { get; set; }
         public DbSet<OrderBooks> OrderBook { get; set; }
-
+        public DbSet<Models.File> File { get; set; } = default!;
 
     }
 }

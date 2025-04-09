@@ -1,81 +1,90 @@
 ﻿@model BookShop.Models.Book
 
 @{
-    ViewData["Title"] = "Details";
+	ViewData["Title"] = "Details";
 }
 
 <h1>Details</h1>
 
 <div>
-    <h4>Book</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Title)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Title)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Description)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Description)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Genre)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Genre)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Price)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Price)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.IsElectronicAvailable)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.IsElectronicAvailable)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.IsAvailable)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.IsAvailable)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.AgeRestriction)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.AgeRestriction)
-        </dd>
-    </dl>
+	<h4>Book</h4>
+	<hr />
+	<dl class="row">
+		<dt class="col-sm-2">
+			@Html.DisplayNameFor(model => model.Title)
+		</dt>
+		<dd class="col-sm-10">
+			@Html.DisplayFor(model => model.Title)
+		</dd>
+		<dt class="col-sm-2">
+			@Html.DisplayNameFor(model => model.Description)
+		</dt>
+		<dd class="col-sm-10">
+			@Html.DisplayFor(model => model.Description)
+		</dd>
+		<dt class="col-sm-2">
+			@Html.DisplayNameFor(model => model.Genre)
+		</dt>
+		<dd class="col-sm-10">
+			@Html.DisplayFor(model => model.Genre)
+		</dd>
+		<dt class="col-sm-2">
+			@Html.DisplayNameFor(model => model.Price)
+		</dt>
+		<dd class="col-sm-10">
+			@Html.DisplayFor(model => model.Price)
+		</dd>
+		<dt class="col-sm-2">
+			@Html.DisplayNameFor(model => model.IsElectronicAvailable)
+		</dt>
+		<dd class="col-sm-10">
+			@Html.DisplayFor(model => model.IsElectronicAvailable)
+		</dd>
+		@if (Model.file != null)
+		{
+			<dt class="col-sm-2">
+				File
+			</dt>
+			<dd class="col-sm-10">
+				<a asp-controller="File" asp-action="DownloadFile" asp-route-id="@Model?.file.Id">Download pdf</a>
+			</dd>
+		}
+		<dt class="col-sm-2">
+			@Html.DisplayNameFor(model => model.IsAvailable)
+		</dt>
+		<dd class="col-sm-10">
+			@Html.DisplayFor(model => model.IsAvailable)
+		</dd>
+		<dt class="col-sm-2">
+			@Html.DisplayNameFor(model => model.AgeRestriction)
+		</dt>
+		<dd class="col-sm-10">
+			@Html.DisplayFor(model => model.AgeRestriction)
+		</dd>
+	</dl>
 </div>
 <div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+	<a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
+	<a asp-action="Index">Back to List</a>
 </div>
 <h3>Some reviews that have been added to the book by other users: </h3>
 <dl class="row">
-    @if (ViewBag.Reviews != null && ((List<Review>)ViewBag.Reviews).Any())
-    {
-        @foreach (Review rev in (List<Review>)ViewData["Reviews"])
-        {
-            <dt class="col-sm-2">
-                @rev.User.Email
-            </dt>
-            <dd class="col-sm-10">
-                @rev.Title
-            </dd>
-            <dt class="col-sm-2">
-                @rev.Stars
-            </dt>
-            <dd class="col-sm-10">
-                @rev.Description
-            </dd>
-        }
-    }
+	@if (ViewBag.Reviews != null && ((List<Review>)ViewBag.Reviews).Any())
+	{
+		@foreach (Review rev in (List<Review>)ViewData["Reviews"])
+		{
+			<dt class="col-sm-2">
+				@rev.User.Email
+			</dt>
+			<dd class="col-sm-10">
+				@rev.Title
+			</dd>
+			<dt class="col-sm-2">
+				@rev.Stars
+			</dt>
+			<dd class="col-sm-10">
+				@rev.Description
+			</dd>
+		}
+	}
 </dl>

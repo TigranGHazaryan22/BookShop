@@ -39,6 +39,7 @@ namespace BookShop.Controllers
             }
 
             var book = await _context.Book
+                .Include(b => b.file)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (book == null)
             {
@@ -67,12 +68,32 @@ namespace BookShop.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Title,Description,Genre,Price,IsElectronicAvailable,IsAvailable,AgeRestriction")] Book book, List<string> AuthorIds)
+        public async Task<IActionResult> Create([Bind("Id,Title,Description,Genre,Price,IsElectronicAvailable,IsAvailable,AgeRestriction")] Book book, List<string> AuthorIds, IFormFile file)
         {
+            ModelState.Remove("file");
             if (ModelState.IsValid)
             {
                 List<Author> authors = await _context.Author.Where(a => AuthorIds.Contains(a.Id)).ToListAsync();
                 book.Authors = authors;
+                book.file = new Models.File();
+
+                if (file != null && file.Length > 0)
+                {
+                    using (MemoryStream memoryStream = new MemoryStream())
+                    {
+                        await file.CopyToAsync(memoryStream);
+                        book.file.name = file.FileName;
+                        book.file.type = file.ContentType;
+                        book.file.filling = memoryStream.ToArray();
+                    }
+                    book.file.Date = DateTime.Now;
+                }
+                else
+                {
+                    book.file = null;
+                    book.IsElectronicAvailable = false;
+                }
+
                 _context.Add(book);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -80,6 +101,7 @@ namespace BookShop.Controllers
             ViewData["Authors"] = await _context.Author.ToListAsync();
             return View(book);
         }
+
 
 
         // GET: Books/Edit/5

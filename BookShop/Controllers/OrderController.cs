@@ -25,32 +25,54 @@ namespace BookShop.Controllers
             return View();
         }
 
-        public async Task<IActionResult> PlaceOrder([FromBody] Dictionary<int, int> counts)
+        public async Task<IActionResult> PlaceOrder()
         {
+            var order = HttpContext.Session.GetObject<List<Book>>(SessionKey) ?? new List<Book>();
             var user = await _userManager.GetUserAsync(User);
-            if (user == null) return Unauthorized();
 
-            List<OrderBooks> orderBooks = new List<OrderBooks>();
+            if (order == null)
+                return BadRequest("Your basket is empty");
 
-            Order newOrder = new Order
+            if (user == null)
+                return Unauthorized();
+
+            Dictionary<int, int> counts = new Dictionary<int, int>();
+
+            foreach (var o in order)
+            {
+                if (counts.Keys.Contains(o.Id))
+                    counts[o.Id]++;
+                else
+                    counts.Add(o.Id, 1);
+            }
+
+            Order newOrder = new Order()
             {
                 User = user,
                 Date = DateTime.Now
             };
 
-            foreach (var book in counts.Keys)
+            List<OrderBooks> orderBooks = new List<OrderBooks>();
+
+            foreach (int id in counts.Keys)
             {
-                orderBooks.Add(new OrderBooks
+                var book = await _context.Book.FirstOrDefaultAsync(b => b.Id == id);
+
+                if (book != null)
                 {
-                    Order = newOrder,
-                    Book = await _context.Book.FirstOrDefaultAsync(a => a.Id == book),
-                    Count = counts[book]
-                });
+                    orderBooks.Add(new OrderBooks()
+                    {
+                        Book = book,
+                        Count = counts[id],
+                        Order = newOrder
+                    });
+                }
+
             }
 
             newOrder.Counts = orderBooks;
 
-            _context.Add(newOrder);
+            _context.Orders.Add(newOrder);
             _context.OrderBook.AddRange(orderBooks);
 
             await _context.SaveChangesAsync();
